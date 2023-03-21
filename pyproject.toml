@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "edgartools"
+name = "edgartoolsREW"
 description = 'One of the nicest looking EDGAR libraries out there'
 readme = "README.md"
 requires-python = ">=3.7"
