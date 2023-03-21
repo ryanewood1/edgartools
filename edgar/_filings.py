@@ -31,11 +31,8 @@ from edgar.fundreports import FUND_FORMS
 from edgar.search import BM25Search, RegexSearch
 
 """ Contain functionality for working with SEC filing indexes and filings
-
 The module contains the following functions
-
 - `get_filings(year, quarter, index)`
-
 """
 
 __all__ = [
@@ -398,9 +395,7 @@ class Filings:
         """
         Get the Filing at that index location or that has the accession number
         >>> filings.get(100)
-
         >>> filings.get("0001721868-22-000010")
-
         :param index_or_accession_number:
         :return:
         """
@@ -497,33 +492,19 @@ def get_filings(year: Years = None,
                 index="form") -> Filings:
     """
     Downloads the filing index for a given year or list of years, and a quarter or list of quarters.
-
     So you can download for 2020, [2020,2021,2022] or range(2020, 2023)
-
     Examples
-
     >>> from edgar import get_filings
-
     >>> filings = get_filings(2021) # Get filings for 2021
-
     >>> filings = get_filings(2021, 4) # Get filings for 2021 Q4
-
     >>> filings = get_filings(2021, [3,4]) # Get filings for 2021 Q3 and Q4
-
     >>> filings = get_filings([2020, 2021]) # Get filings for 2020 and 2021
-
     >>> filings = get_filings([2020, 2021], 4) # Get filings for Q4 of 2020 and 2021
-
     >>> filings = get_filings(range(2010, 2021)) # Get filings between 2010 and 2021 - does not include 2021
-
     >>> filings = get_filings(2021, 4, form="D") # Get filings for 2021 Q4 for form D
-
     >>> filings = get_filings(2021, 4, filing_date="2021-10-01") # Get filings for 2021 Q4 on "2021-10-01"
-
     >>> filings = get_filings(2021, 4, filing_date="2021-10-01:2021-10-10") # Get filings for 2021 Q4 between
                                                                             # "2021-10-01" and "2021-10-10"
-
-
     :param year The year of the filing
     :param quarter The quarter of the filing
     :param form The form or forms as a string e.g. "10-K" or a List ["10-K", "8-K"]
@@ -631,6 +612,19 @@ class Filing:
             xbrl_text = xbrl_document.download(text=True)
             return FilingXbrl.parse(xbrl_text)
 
+		##REWedits
+    def xbrlREW(self):
+      xbrl_document=self.homepage.xbrl_document
+      if xbrl_document:
+              xbrl_text = xbrl_document.download(text=True)
+              return FilingXbrl.parse(xbrl_text)
+    def xmlREW(self) -> Optional[str]:
+        """Returns the xml contents of the primary document if it is xml"""
+        xml_document: FilingDocument = self.homepage.primary_xml_documentREW
+        if xml_document:
+            return xml_document.download(text=True)
+
+
     def data_object(self):
         """ Get this filing as the data object that it might be"""
         from edgar import obj
@@ -697,7 +691,6 @@ class Filing:
     def related_filings(self):
         """Get all the filings related to this one
         There is no file number on this base Filing class so first get the company,
-
         then this filing then get the related filings
         """
         company = self.get_entity()
@@ -726,7 +719,6 @@ class Filing:
     def __str__(self):
         """
         Return a string version of this filing e.g.
-
         Filing(form='10-K', filing_date='2018-03-08', company='CARBO CERAMICS INC',
               cik=1009672, accession_no='0001564590-18-004771')
         :return:
@@ -763,7 +755,6 @@ class Filing:
 class FilingDocument:
     """
     A document on the filing
-
     """
     seq: int
     description: str
@@ -783,9 +774,7 @@ class FilingDocument:
     def display_extension(self) -> str:
         """This is the extension displayed in the html e.g. "es220296680_4-davis.html"
         The actual extension would be "es220296680_4-davis.xml", that displays as html in the browser
-
         >>> .html
-
         """
         return os.path.splitext(self.document)[1]
 
@@ -884,11 +873,33 @@ class FilingHomepage:
         ]
 
     @property
+    @lru_cache(maxsize=2)
+    def InfoTables(self) -> List[FilingDocument]:
+        """
+        Get the documents listed as primary for the filing
+        :return:
+        """
+        min_seq = self.min_seq()+1
+        doc_results = self.documents.query(f"Seq=='{min_seq}'")
+        return [
+            FilingDocument.from_dataframe_row(self.documents.iloc[index])
+            for index in doc_results.index
+        ]
+
+
+    @property
     def primary_xml_document(self) -> Optional[FilingDocument]:
         """Get the primary xml document on the filing"""
         for doc in self.primary_documents:
             if doc.display_extension == ".xml":
                 return doc
+	@property
+    def primary_xml_documentREW(self) -> Optional[FilingDocument]:
+        """Get the primary xml document on the filing"""
+        for doc in self.InfoTables:
+            if doc.display_extension == ".xml":
+                return doc
+
 
     @property
     def text_document(self) -> FilingDocument:
@@ -998,3 +1009,18 @@ def summarize_files(data: pd.DataFrame) -> pd.DataFrame:
             .assign(Size=data.Size.apply(display_size))
             .set_index("Seq")
             )
+Footer
+© 2023 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+edgartools/_filings.py at main · dgunning/edgartools · GitHub
