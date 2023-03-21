@@ -893,7 +893,7 @@ class FilingHomepage:
         for doc in self.primary_documents:
             if doc.display_extension == ".xml":
                 return doc
-	@property
+    @property
     def primary_xml_documentREW(self) -> Optional[FilingDocument]:
         """Get the primary xml document on the filing"""
         for doc in self.InfoTables:
